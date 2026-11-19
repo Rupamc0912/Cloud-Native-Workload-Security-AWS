@@ -1,0 +1,12 @@
+.git
+.github
+.gitignore
+.dockerignore
+docs
+terraform
+*.md
+*.tfstate
+*.tfstate.*
+.env
+__pycache__
+*.pyc
