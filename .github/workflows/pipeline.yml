@@ -1,0 +1,29 @@
+name: secure-container-pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t secure-app:${{ github.sha }} .
+
+      - name: Scan image with Trivy (report only for now)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: secure-app:${{ github.sha }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "0"
