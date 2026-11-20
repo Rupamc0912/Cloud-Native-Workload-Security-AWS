@@ -25,3 +25,8 @@ variable "github_repository" {
   description = "GitHub repo allowed to deploy, in the form owner/name (case-sensitive)"
   type        = string
 }
+
+variable "github_oidc_subject" {
+  description = "Exact OIDC subject claim GitHub sends for the main branch"
+  type        = string
+}
