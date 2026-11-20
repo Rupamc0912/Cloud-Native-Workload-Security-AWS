@@ -20,6 +20,22 @@ jobs:
       - name: Build image
         run: docker build -t secure-app:${{ github.sha }} .
 
+      - name: Generate SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: secure-app:${{ github.sha }}
+          format: cyclonedx
+          output: sbom.cdx.json
+          exit-code: "0"
+
+      - name: Upload SBOM as build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.cdx.json
+          retention-days: 30
+
       - name: Scan image with Trivy (full report, never fails)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
