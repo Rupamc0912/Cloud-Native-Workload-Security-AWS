@@ -20,10 +20,19 @@ jobs:
       - name: Build image
         run: docker build -t secure-app:${{ github.sha }} .
 
-      - name: Scan image with Trivy (report only for now)
+      - name: Scan image with Trivy (full report, never fails)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: secure-app:${{ github.sha }}
           format: table
           severity: HIGH,CRITICAL
           exit-code: "0"
+
+      - name: Enforce vulnerability policy (blocks the build)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: secure-app:${{ github.sha }}
+          format: table
+          severity: ${{ vars.TRIVY_BLOCK_SEVERITY || 'CRITICAL,HIGH' }}
+          ignore-unfixed: true
+          exit-code: "1"
