@@ -27,13 +27,19 @@ resource "aws_ecs_task_definition" "app" {
       readonlyRootFilesystem = true
       privileged             = false
       linuxParameters = {
-        capabilities       = { drop = ["ALL"] }
+        capabilities       = { add = [], drop = ["ALL"] }
         initProcessEnabled = true
       }
 
       portMappings = [
-        { containerPort = 8080, protocol = "tcp" }
+        { containerPort = 8080, hostPort = 8080, protocol = "tcp" }
       ]
+
+      # Explicit defaults so Terraform's plan matches what AWS stores
+      environment    = []
+      mountPoints    = []
+      systemControls = []
+      volumesFrom    = []
 
       # The slim image has no curl, so the health check uses Python
       healthCheck = {

@@ -20,3 +20,8 @@ variable "image_tag" {
   type        = string
   default     = "v2"
 }
+
+variable "github_repository" {
+  description = "GitHub repo allowed to deploy, in the form owner/name (case-sensitive)"
+  type        = string
+}
