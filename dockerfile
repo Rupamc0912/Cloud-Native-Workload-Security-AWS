@@ -5,6 +5,11 @@ FROM python:3.13-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# Apply available OS security patches at build time
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create a non-root user with a fixed ID
 RUN groupadd --system --gid 10001 appgroup && \
     useradd --system --uid 10001 --gid appgroup \
@@ -12,9 +17,10 @@ RUN groupadd --system --gid 10001 appgroup && \
 
 WORKDIR /app
 
-# Install dependencies first (Docker caches this layer)
+# Install dependencies, then remove packaging tools the app doesn't need at runtime
 COPY app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip uninstall -y pip setuptools wheel
 
 # Copy only the application code
 COPY app/app.py .
