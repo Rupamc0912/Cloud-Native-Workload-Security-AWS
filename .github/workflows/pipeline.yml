@@ -13,6 +13,9 @@ permissions:
 jobs:
   build-and-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # lets the job request an OIDC token for AWS
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -52,3 +55,22 @@ jobs:
           severity: ${{ vars.TRIVY_BLOCK_SEVERITY || 'CRITICAL,HIGH' }}
           ignore-unfixed: true
           exit-code: "1"
+
+      - name: Configure AWS credentials (OIDC, no stored keys)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag and push image to ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          IMAGE="${{ steps.login-ecr.outputs.registry }}/secure-workload-app:${{ github.sha }}"
+          docker tag secure-app:${{ github.sha }} "$IMAGE"
+          docker push "$IMAGE"
